@@ -1,4 +1,4 @@
-# 🏦 Anti-Fraud & Banking Core Database System
+# Anti-Fraud & Banking Core Database System
 
 This project is a relational database system (PostgreSQL) designed for a banking core with an integrated real-time transaction monitoring and fraud detection system (**Anti-Fraud System**).
 
@@ -6,19 +6,19 @@ The system automatically evaluates the risk score of each financial operation ba
 
 ---
 
-## 📐 1. Database Architecture (Data Schema)
+## 1. Database Architecture (Data Schema)
 
 The database consists of 8 interconnected tables, which can be logically divided into three modules:
 
-### 👤 Core Banking Module
+### Core Banking Module
 * **`customers`**: Stores personal data of clients (Full Name, country of residence, account status).
 * **`accounts`**: Manages multi-currency client accounts (`UAH`, `USD`, `EUR`) with a non-negative balance constraint.
 * **`cards`**: Contains payment cards linked to bank accounts, featuring masked/hashed card numbers and various service tiers (Classic, Gold, Platinum, Virtual).
 
-### 💸 Transaction Module
+### Transaction Module
 * **`transactions`**: Records payments, ATM cash withdrawals, and online purchases, while calculating a `risk_score` (ranging from 0 to 100) and assigning transaction statuses.
 
-### 🛡 Anti-Fraud & Audit Module
+### Anti-Fraud & Audit Module
 * **`fraud_rules`**: Defines configurations for active fraud rules (limits, velocity thresholds, and geographical checks).
 * **`fraud_alerts`**: Stores security alerts generated for suspicious transactions that require compliance review.
 * **`transaction_status_history`**: Tracks every change in a transaction's status to prevent internal fraud and ensure data lineage.
@@ -26,11 +26,11 @@ The database consists of 8 interconnected tables, which can be logically divided
 
 ---
 
-## 🧠 2. Automation & Business Logic (Triggers & Procedures)
+## 2. Automation & Business Logic (Triggers & Procedures)
 
 The system is fully autonomous and operates via a robust set of PL/pgSQL triggers and stored procedures:
 
-### 🔴 Risk Assessment (`BEFORE INSERT` on `transactions`)
+### Risk Assessment (`BEFORE INSERT` on `transactions`)
 The `before_insert_transaction` trigger analyzes each transaction **prior to its persistence** in the database using three main rule categories:
 1.  **LIMIT_EXCEEDED**: If the transaction amount exceeds the rule threshold (e.g., > 10,000 or > 50,000), the transaction is flagged as `FLAGGED` and assigned a `risk_score = 40`.
 2.  **GEOGRAPHY**: If the merchant's country (`merchant_country`) does not match the customer's home country, the transaction is classified as a cross-border anomaly (`risk_score = 35`, status `FLAGGED`).
@@ -38,10 +38,10 @@ The `before_insert_transaction` trigger analyzes each transaction **prior to its
 
 Whenever a rule is violated, the system automatically inserts a corresponding entry into the `fraud_alerts` table. If no rules are triggered, the transaction status is automatically set to `APPROVED`.
 
-### 🧮 Balance Execution (`AFTER INSERT / UPDATE` on `transactions`)
+### Balance Execution (`AFTER INSERT / UPDATE` on `transactions`)
 The `tg_execute_transaction_insert / update` trigger automatically deducts funds from the client's balance (`accounts.balance`), but **strictly on the condition** that the transaction transitions into the `APPROVED` status.
 
-### 📝 Secure Withdrawal Procedure
+### Secure Withdrawal Procedure
 The `execute_money_withdrawal` procedure encapsulates the cash withdrawal logic:
 * Verifies if the target account exists.
 * Validates sufficient fundsavailability (if funds are insufficient, it raises an `EXCEPTION` and rolls back the operation).
@@ -49,7 +49,7 @@ The `execute_money_withdrawal` procedure encapsulates the cash withdrawal logic:
 
 ---
 
-## 📊 3. Analytical Database Views
+## 3. Analytical Database Views
 
 The project includes three analytical views designed for the monitoring and risk-management departments:
 
@@ -59,7 +59,7 @@ The project includes three analytical views designed for the monitoring and risk
 
 ---
 
-## ⚡ 4. Materialized Views for Performance
+## 4. Materialized Views for Performance
 
 To optimize heavy analytical reporting, a materialized view named **`mv_daily_fraud_summary`** was implemented.
 
